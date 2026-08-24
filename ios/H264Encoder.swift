@@ -37,7 +37,7 @@ final class H264Encoder {
                 presentationTimeStamp: presentationTime,
                 duration: .invalid,
                 frameProperties: nil,
-                sourcePixelBufferPoolOut: nil,
+                sourceFrameRefcon: nil,
                 infoFlagsOut: nil
             )
         }

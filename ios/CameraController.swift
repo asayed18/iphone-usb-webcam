@@ -141,15 +141,6 @@ final class CameraController: NSObject, ObservableObject {
                                           device.activeFormat.maxExposureDuration.seconds)
                 let dur = CMTime(seconds: clampedShutterS, preferredTimescale: 1_000_000)
                 device.setExposureModeCustom(duration: dur, iso: min(max(iso, isoRange.lowerBound), isoRange.upperBound))
-                if device.isWhiteBalanceModeSupported(.custom) {
-                    let tt = AVCaptureDevice.WhiteBalanceTemperatureAndTintValues(temperature: wbTemp, tint: wbTint)
-                    var gains = device.deviceWhiteBalanceGains(for: tt)
-                    let maxGain = device.maxWhiteBalanceGain
-                    gains.redGain = min(max(gains.redGain, 1), maxGain)
-                    gains.greenGain = min(max(gains.greenGain, 1), maxGain)
-                    gains.blueGain = min(max(gains.blueGain, 1), maxGain)
-                    device.setWhiteBalanceModeCustom(with: gains)
-                }
                 if device.isFocusModeSupported(.locked) {
                     device.focusMode = .locked
                     device.setFocusModeLocked(lensPosition: focusPos)
@@ -157,7 +148,9 @@ final class CameraController: NSObject, ObservableObject {
             } else {
                 device.exposureMode = .continuousAutoExposure
                 device.focusMode = .continuousAutoFocus
-                device.whiteBalanceMode = .continuousAutoWhiteBalance
+                if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                    device.whiteBalanceMode = .continuousAutoWhiteBalance
+                }
             }
             device.unlockForConfiguration()
         } catch {}
