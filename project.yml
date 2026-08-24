@@ -1,0 +1,42 @@
+name: UsbCam
+options:
+  bundleIdPrefix: com.ahmed.usbcam
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+    ENABLE_BITCODE: "NO"
+
+targets:
+  UsbCam:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios
+        excludes:
+          - "Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ahmed.usbcam.app
+        INFOPLIST_FILE: ios/Info.plist
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+    info:
+      path: ios/Info.plist
+      properties:
+        CFBundleDisplayName: UsbCam
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        NSCameraUsageDescription: "UsbCam captures the camera feed and streams it to your PC over USB."
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true

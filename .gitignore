@@ -1,0 +1,13 @@
+# Xcode / macOS
+build/
+DerivedData/
+*.xcuserdatad/
+*.xcworkspace/
+UsbCam.xcodeproj/
+
+# Artifacts
+*.ipa
+Payload/
+
+# Windows junk
+Thumbs.db
