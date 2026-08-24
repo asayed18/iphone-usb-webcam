@@ -56,8 +56,8 @@ final class H264Encoder {
             height: pixelHeight,
             codecType: kCMVideoCodecType_H264,
             encoderSpecification: [
-                VTCompressionPropertyKey_EnableHardwareAcceleratedVideoEncoder as String: kCFBooleanTrue as Any,
-                VTCompressionPropertyKey_RealTime as String: kCFBooleanTrue as Any,
+                kVTCompressionPropertyKey_EnableHardwareAcceleratedVideoEncoder as String: kCFBooleanTrue as Any,
+                kVTCompressionPropertyKey_RealTime as String: kCFBooleanTrue as Any,
             ] as CFDictionary,
             imageBufferAttributes: attrs as CFDictionary,
             compressedDataAllocator: nil,
@@ -74,7 +74,6 @@ final class H264Encoder {
             kVTCompressionPropertyKey_ExpectedFrameRate as String: NSNumber(value: frameRate),
             kVTCompressionPropertyKey_MaxKeyFrameInterval as String: NSNumber(value: frameRate * 2),
             kVTCompressionPropertyKey_AllowFrameReordering as String: kCFBooleanFalse as Any,
-            kVTCompressionPropertyKey_AutoKeyFrameEnabled as String: kCFBooleanTrue as Any,
         ]
         VTSessionSetProperties(s, propertyDictionary: props as CFDictionary)
         VTCompressionSessionPrepareToEncodeFrames(s)
@@ -85,7 +84,7 @@ final class H264Encoder {
         queue.sync {
             if let session {
                 VTCompressionSessionCompleteFrames(session, untilPresentationTimeStamp: .invalid)
-                session.invalidate()
+                VTCompressionSessionInvalidate(session)
             }
             session = nil
         }
@@ -95,8 +94,8 @@ final class H264Encoder {
         guard let description = CMSampleBufferGetFormatDescription(sampleBuffer) else { return }
 
         if sps == nil || pps == nil {
-            var spsPtr: UnsafeMutablePointer<UInt8>?
-            var ppsPtr: UnsafeMutablePointer<UInt8>?
+            var spsPtr: UnsafePointer<UInt8>?
+            var ppsPtr: UnsafePointer<UInt8>?
             var spsSize = 0, ppsSize = 0, spsCount = 0, ppsCount = 0
             var nalHeaderLen: Int32 = 0
             CMVideoFormatDescriptionGetH264ParameterSetAtIndex(
@@ -124,7 +123,8 @@ final class H264Encoder {
         let total = CMBlockBufferGetDataLength(blockBuffer)
         var avcc = Data(count: total)
         guard avcc.withUnsafeMutableBytes({ ptr -> Bool in
-            ptr.baseAddress.map { CMBlockBufferCopyDataBytes(blockBuffer, atOffset: 0, dataLength: total, destinationBuffer: $0) } ?? false
+            guard let dest = ptr.baseAddress else { return false }
+            return CMBlockBufferCopyDataBytes(blockBuffer, atOffset: 0, dataLength: total, destination: dest) == kCMBlockBufferNoErr
         }) else { return }
 
         var annexB = Data()
