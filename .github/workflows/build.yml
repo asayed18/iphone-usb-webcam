@@ -8,11 +8,16 @@ on:
 jobs:
   build:
     runs-on: macos-14
+    env:
+      HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
     steps:
       - uses: actions/checkout@v4
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: |
+          brew untap aws/tap || true
+          brew install xcodegen
 
       - name: Generate Xcode project
         run: xcodegen generate
