@@ -77,10 +77,16 @@ struct ContentView: View {
                 ))
 
                 if cam.manualMode {
-                    SliderRow(label: "ISO", value: $cam.iso, range: 34...4480, format: "%.0f")
+                    SliderRow(label: "ISO", value: Binding(
+                        get: { Double(cam.iso) }, set: { cam.iso = Float($0) }
+                    ), range: 34...4480, format: "%.0f")
                     SliderRow(label: "Shutter", value: $cam.shutterMs, range: 1...33, format: "%.1f ms")
-                    SliderRow(label: "WB Temp", value: $cam.wbTemp, range: 2500...8000, format: "%.0f K")
-                    SliderRow(label: "Focus", value: $cam.focusPos, range: 0...1, format: "%.2f")
+                    SliderRow(label: "WB Temp", value: Binding(
+                        get: { Double(cam.wbTemp) }, set: { cam.wbTemp = Float($0) }
+                    ), range: 2500...8000, format: "%.0f K")
+                    SliderRow(label: "Focus", value: Binding(
+                        get: { Double(cam.focusPos) }, set: { cam.focusPos = Float($0) }
+                    ), range: 0...1, format: "%.2f")
                 }
 
                 SliderRow(label: "Zoom", value: Binding(

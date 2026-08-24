@@ -13,7 +13,7 @@ final class H264Encoder {
     private var pps: Data?
 
     // Must stay alive for the lifetime of the session (C function pointer).
-    private let outputCallback: VTOutputCallback = { refcon, _, status, _, sampleBuffer in
+    private let outputCallback: VTCompressionOutputCallback = { refcon, _, status, _, sampleBuffer in
         guard status == noErr, let sampleBuffer, let refcon else { return }
         let encoder = Unmanaged<H264Encoder>.fromOpaque(refcon).takeUnretainedValue()
         encoder.consume(sampleBuffer: sampleBuffer)
@@ -43,21 +43,22 @@ final class H264Encoder {
         }
     }
 
-    private func ensureSession(pixelWidth: Int32, pixelHeight: Int32) -> Bool {
+    private func ensureSession(pixelWidth: Int, pixelHeight: Int) -> Bool {
         if session != nil { return true }
 
         var newSession: VTCompressionSession?
         let attrs: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         ]
+        // Public VT property keys as raw CFString values — avoids SDK import inconsistencies.
         let status = VTCompressionSessionCreate(
             allocator: kCFAllocatorDefault,
-            width: pixelWidth,
-            height: pixelHeight,
+            width: Int32(pixelWidth),
+            height: Int32(pixelHeight),
             codecType: kCMVideoCodecType_H264,
             encoderSpecification: [
-                kVTCompressionPropertyKey_EnableHardwareAcceleratedVideoEncoder as String: kCFBooleanTrue as Any,
-                kVTCompressionPropertyKey_RealTime as String: kCFBooleanTrue as Any,
+                "EnableHardwareAcceleratedVideoEncoder": kCFBooleanTrue as Any,
+                "RealTime": kCFBooleanTrue as Any,
             ] as CFDictionary,
             imageBufferAttributes: attrs as CFDictionary,
             compressedDataAllocator: nil,
@@ -69,11 +70,11 @@ final class H264Encoder {
         session = s
 
         let props: [String: Any] = [
-            kVTCompressionPropertyKey_ProfileLevel as String: kVTProfileLevel_H264_Baseline_AutoLevel,
-            kVTCompressionPropertyKey_AverageBitRate as String: NSNumber(value: targetBitrate),
-            kVTCompressionPropertyKey_ExpectedFrameRate as String: NSNumber(value: frameRate),
-            kVTCompressionPropertyKey_MaxKeyFrameInterval as String: NSNumber(value: frameRate * 2),
-            kVTCompressionPropertyKey_AllowFrameReordering as String: kCFBooleanFalse as Any,
+            "ProfileLevel": "H264/Baseline_AutoLevel",
+            "AverageBitRate": NSNumber(value: targetBitrate),
+            "ExpectedFrameRate": NSNumber(value: frameRate),
+            "MaxKeyFrameInterval": NSNumber(value: frameRate * 2),
+            "AllowFrameReordering": kCFBooleanFalse as Any,
         ]
         VTSessionSetProperties(s, propertyDictionary: props as CFDictionary)
         VTCompressionSessionPrepareToEncodeFrames(s)
